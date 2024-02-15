@@ -1,12 +1,19 @@
-package com.elgin.tef;
+package com.elgin.tef.impl;
 
 import com.elgin.tef.enums.*;
+import com.elgin.tef.inputs.DadosPagamentoTef;
+import com.elgin.tef.interfaces.E1_Tef01;
+import com.elgin.tef.retornos.BaseReturn;
 import com.elgin.tef.util.VMCheck;
+import com.google.gson.Gson;
 import com.sun.jna.Pointer;
+
+import java.rmi.UnexpectedException;
 
 public class TEFElgin {
 
     boolean tefIniciado = false;
+    boolean tefEmColeta = false;
 
 
     public TEFElgin() throws UnsupportedClassVersionError {
@@ -30,8 +37,10 @@ public class TEFElgin {
      * @return Retorna a configuração atual do Client, no formato ip_client|porta_client
      */
     public void GetClientTCP(){
-       Pointer pointer =  E1_Tef01.INSTANCE.GetClientTCP();
-        System.out.println(pointer.getString(0));
+       String json =  E1_Tef01.INSTANCE.GetClientTCP().getString(0);
+        System.out.println(json);
+        BaseReturn ret = new Gson().fromJson(json, BaseReturn.class);
+        System.out.println(ret);
     }
 
     /** 3º
@@ -40,9 +49,14 @@ public class TEFElgin {
      * @param porta    int da porta a ser usada pelo ElginTEF
      * @return Retorna o resultado da operação (erro ou sucesso). Em caso de sucesso, esses parâmetros serão persistidos no arquivo de configuração.
      */
-    public void SetClientTCP(String ip, int porta) {
-        Pointer pointer = E1_Tef01.INSTANCE.SetClientTCP(ip, porta);
-        System.out.println(pointer.getString(0));
+    public void SetClientTCP(String ip, int porta) throws UnexpectedException {
+        String json = E1_Tef01.INSTANCE.SetClientTCP(ip, porta).getString(0);
+        BaseReturn retorno = new BaseReturn().convert(json);
+        if(retorno.getCodigo() != 0 && retorno.getCodigo() != 1){
+            throw new UnexpectedException(retorno.getMensagem());
+        }else{
+            System.out.println("Arquivo de configuração persistido!");
+        }
     }
 
     /** 4º
@@ -54,9 +68,16 @@ public class TEFElgin {
      * @param identificadorPontoCaptura      O nome/código (String) do terminal (pertencente à loja) no qual a AC está em execução
      * @return Retorna sucesso, se o arquivo for criado/atualizado com sucesso, ou erro, caso contrário.
      */
-    public void ConfigurarDadosPDV(String textoPinpad, String versaoAC, String nomeEstabelecimento, String loja, String identificadorPontoCaptura) {
-        Pointer pointer = E1_Tef01.INSTANCE.ConfigurarDadosPDV(textoPinpad, versaoAC, nomeEstabelecimento, loja, identificadorPontoCaptura);
-        System.out.println(pointer.getString(0));
+    public void ConfigurarDadosPDV(String textoPinpad, String versaoAC, String nomeEstabelecimento, String loja, String identificadorPontoCaptura) throws UnexpectedException {
+        String json  = E1_Tef01.INSTANCE.ConfigurarDadosPDV(textoPinpad, versaoAC, nomeEstabelecimento, loja, identificadorPontoCaptura).getString(0);
+        BaseReturn retorno = new BaseReturn().convert(json);
+
+        if(retorno.getCodigo() != 0 && retorno.getCodigo() != 1){
+            throw new UnexpectedException(retorno.getMensagem());
+        }else{
+            System.out.println("Arquivo for criado/atualizado com sucesso!");
+        }
+
     }
 
 
@@ -96,8 +117,9 @@ public class TEFElgin {
      * false - indica uma operação já iniciada, em estado de coleta em Modo Ativo
      * @return Uma string JSON com a seguinte estrutura: https://elgindevelopercommunity.github.io/group__tf.html#ga09d2bd1b1adb661b08e35f983b412d6a
      */
-    public void RealizarPagamentoTEF(Operacao codigoOperacao, String dadosCaptura, boolean novaTransacao){
-        Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(codigoOperacao.getCodigo(), dadosCaptura, novaTransacao);
+    public void RealizarPagamentoTEF(Operacao codigoOperacao, DadosPagamentoTef dadosCaptura, boolean novaTransacao){
+        Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(codigoOperacao.getCodigo(), dadosCaptura.toInput(), novaTransacao);
+        System.out.println(pointer.getString(0));
     }
 
 

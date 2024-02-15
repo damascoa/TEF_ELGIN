@@ -1,4 +1,4 @@
-package com.elgin.tef;
+package com.elgin.tef.interfaces;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
