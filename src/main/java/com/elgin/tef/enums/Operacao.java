@@ -1,6 +1,7 @@
 package com.elgin.tef.enums;
 
 public enum Operacao {
+    SELECIONA(0),
     CREDITO(1),
     DEBITO(2),
     VOUCHER(3),

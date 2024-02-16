@@ -9,6 +9,10 @@ public class DadosPagamentoTef {
     private String sequencia;
     private BigDecimal valor;
 
+    private String automacao_coleta_retorno;
+    private String automacao_coleta_sequencial;
+
+
     public DadosPagamentoTef(String sequencia, BigDecimal valor) {
         this.sequencia = sequencia;
         this.valor = valor;
@@ -30,11 +34,36 @@ public class DadosPagamentoTef {
         this.valor = valor;
     }
 
+    public String getAutomacao_coleta_retorno() {
+        return automacao_coleta_retorno;
+    }
+
+    public void setAutomacao_coleta_retorno(String automacao_coleta_retorno) {
+        this.automacao_coleta_retorno = automacao_coleta_retorno;
+    }
+
+    public String getAutomacao_coleta_sequencial() {
+        return automacao_coleta_sequencial;
+    }
+
+    public void setAutomacao_coleta_sequencial(String automacao_coleta_sequencial) {
+        this.automacao_coleta_sequencial = automacao_coleta_sequencial;
+    }
 
     public String toInput(){
         JsonObject object = new JsonObject();
-        object.addProperty("sequencia", sequencia);
-        object.addProperty("valorTotal", MathUtil.converterBigDecimalParaStringSemPonto(valor));
+        if(sequencia != null) {
+            object.addProperty("sequencia", sequencia);
+        }
+        if(valor != null) {
+            object.addProperty("valorTotal", valor.toString());
+        }
+        if(automacao_coleta_retorno != null){
+            object.addProperty("automacao_coleta_retorno", automacao_coleta_retorno);
+        }
+        if(automacao_coleta_sequencial != null){
+            object.addProperty("automacao_coleta_sequencial", automacao_coleta_sequencial);
+        }
         return object.toString();
     }
 }

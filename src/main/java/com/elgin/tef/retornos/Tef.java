@@ -9,6 +9,14 @@ public class Tef {
     private String sequencial;
     private String servico;
 
+    private String automacao_coleta_opcao;
+    private String automacao_coleta_palavra_chave;
+    private String automacao_coleta_tipo;
+
+
+
+
+
 
     public Tef() {
     }
@@ -67,5 +75,29 @@ public class Tef {
 
     public void setServico(String servico) {
         this.servico = servico;
+    }
+
+    public String getAutomacao_coleta_opcao() {
+        return automacao_coleta_opcao;
+    }
+
+    public void setAutomacao_coleta_opcao(String automacao_coleta_opcao) {
+        this.automacao_coleta_opcao = automacao_coleta_opcao;
+    }
+
+    public String getAutomacao_coleta_palavra_chave() {
+        return automacao_coleta_palavra_chave;
+    }
+
+    public void setAutomacao_coleta_palavra_chave(String automacao_coleta_palavra_chave) {
+        this.automacao_coleta_palavra_chave = automacao_coleta_palavra_chave;
+    }
+
+    public String getAutomacao_coleta_tipo() {
+        return automacao_coleta_tipo;
+    }
+
+    public void setAutomacao_coleta_tipo(String automacao_coleta_tipo) {
+        this.automacao_coleta_tipo = automacao_coleta_tipo;
     }
 }

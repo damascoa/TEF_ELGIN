@@ -3,7 +3,9 @@
     "ipClientTCP": "127.0.0.1",
     "loja": "01",
     "nomeEstabelecimento": "Metre",
+    "operacaoPendenciaCustomizada": true,
     "portaClientTCP": 60906,
     "textoPinpad": "Metre Sistemas",
+    "verificarTransacoesPendentes": 1,
     "versaoAC": "v1.06.000"
 }

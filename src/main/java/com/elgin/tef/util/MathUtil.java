@@ -12,4 +12,15 @@ public class MathUtil {
         String resultado = valorMultiplicado.toBigInteger().toString();
         return resultado;
     }
+
+    public static String byteToString(byte[] buffer){
+        if(buffer == null){
+            return "";
+        }
+        String saida = new String(buffer).trim();
+        if( saida == null || saida.equals("") || saida.isEmpty()){
+            return "";
+        }
+        return saida;
+    }
 }
