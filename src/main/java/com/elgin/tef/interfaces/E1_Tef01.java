@@ -1,5 +1,6 @@
 package com.elgin.tef.interfaces;
 
+import com.elgin.tef.util.VMCheck;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.win32.StdCallLibrary;
@@ -7,7 +8,7 @@ import com.sun.jna.win32.StdCallLibrary;
 public interface E1_Tef01 extends StdCallLibrary {
 
 
-    E1_Tef01 INSTANCE = (E1_Tef01) Native.loadLibrary("C:\\Chef\\Lib\\elgin\\x64\\E1_Tef01", E1_Tef01.class);
+    E1_Tef01 INSTANCE = (E1_Tef01) Native.loadLibrary(VMCheck.checkJvmVersion().equalsIgnoreCase("64")  ? "C:\\Chef\\Lib\\elgin\\x64\\E1_Tef01" : "C:\\Chef\\Lib\\elgin\\x86\\E1_Tef01", E1_Tef01.class);
 
     Pointer SetClientTCP(String ip, int porta);
     Pointer ConfigurarDadosPDV(String textoPinpad, String versaoAC, String nomeEstabelecimento, String loja, String identificadorPontoCaptura);

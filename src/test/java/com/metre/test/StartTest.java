@@ -1,14 +1,18 @@
 package com.metre.test;
 
+import com.elgin.tef.enums.Acao;
 import com.elgin.tef.enums.Operacao;
 import com.elgin.tef.impl.TEFElgin;
 import com.elgin.tef.enums.TipoColeta;
 import com.elgin.tef.inputs.DadosPagamentoTef;
 import com.elgin.tef.retornos.BaseReturn;
 import com.google.gson.JsonObject;
+import com.sun.prism.shader.AlphaTexture_RadialGradient_AlphaTest_Loader;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.rmi.UnexpectedException;
+import java.util.Scanner;
 
 public class StartTest {
     public static JsonObject retorno;
@@ -32,29 +36,56 @@ public class StartTest {
                 }
                  retorno = tef.IniciarOperacaoTEF();
 
-                sequencia = Integer.parseInt(retorno.get("tef").getAsJsonObject().get("sequencial").getAsString())+1;
-//                if(retorno.getCodigo() != 0 && retorno.getCodigo() != 1){
-//                    tef.FinalizarOperacaoTEF(1);
-//                }
-                Boolean novatransacao = true;
-                DadosPagamentoTef dpt =  new DadosPagamentoTef("1", new BigDecimal("10.22"));
-                retorno = tef.RealizarPagamentoTEF(Operacao.SELECIONA, dpt, novatransacao);
+                sequencia = Integer.parseInt(ExtriarConteudoTEF(retorno, "sequencial"))+1;
+                JsonObject pendencias = tef.VerificarPendencia();
 
-                    dpt  = new DadosPagamentoTef(null,null);
-                    dpt.setAutomacao_coleta_retorno(retorno.get("tef").getAsJsonObject().get("automacao_coleta_retorno").getAsString());
-                    dpt.setAutomacao_coleta_sequencial(retorno.get("tef").getAsJsonObject().get("automacao_coleta_sequencial").getAsString());
-                    dpt.setSequencia("1");
-//
-                    retorno =  tef.RealizarPagamentoTEF(Operacao.CREDITO, dpt, false);
-                    System.out.println("HERE");
+                Boolean temPendencias = pendencias.toString().contains("Erro ao verificar se existem") ? false  : ExtriarConteudoTEF(pendencias, "existeTransacaoPendente") == "false" ? false : true;
+                if(!temPendencias){
+                    int sequenciaColeta = 0;
+                    JsonObject obj;
+                    obj =  tef.RealizarPagamentoTEF(Operacao.CREDITO, new DadosPagamentoTef(sequenciaColeta+"", new BigDecimal("10.2")), false);
+                    Boolean emColeta = true;
+                  while(emColeta){
 
-                while(true){
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                      String tipo = ExtriarConteudoTEF(obj, "automacao_coleta_palavra_chave");
+                      System.out.println("TIPO "+tipo);
+                      if(tipo.equals("transacao_valor")){
+//                          Scanner myObj = new Scanner(System.in);  // Create a Scanner object
+//                          System.out.println("Informe o valor!");
+//                          String valor = "1000";  // Read user input
+                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_informacao\":\"100.00\",\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"1\"}", false);
+                      }else if(tipo.equals("transacao_tipo_cartao")){
+                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_informacao\":\"Credito\",\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"2\"}", false);
+                          System.out.println(obj);
+                      }else if(tipo.equals("transacao_cartao_numero")){
+                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"3\"}", false);
+                          System.out.println(obj);
+                      }else if(tipo.equals("transacao_pagamento")){
+                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_informacao\":\"A vista\",\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"4\"}", false);
+                          obj.addProperty("automacao_coleta_retorno","0");
+                          System.out.println(obj);
+                      }else if(tipo.equals("wait_password")){
+                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"5\"}", false);
+                          obj.addProperty("automacao_coleta_retorno","0");
+                      }else if(tipo.equals("wait_process")){
+                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"6\"}", false);
+                          obj.addProperty("automacao_coleta_retorno","0");
+                      }
+
+                      String ret = ExtriarConteudoTEF(obj, "automacao_coleta_retorno");
+                      emColeta = ret.equalsIgnoreCase("0") || ret.equals("wait_password") ||  ret.equals("wait_process");
+                      System.out.println(obj);
+                      System.out.println("EM COLETA "+emColeta +" - "+ ExtriarConteudoTEF(obj, "automacao_coleta_retorno"));
+                  }
+
+                    System.out.println(obj.get("tef").getAsJsonObject().get("mensagemResultado"));
+                  tef.FinalizarOperacaoTEF(1);
+
+                }else{
+                    System.err.println("Existem transações pendentes no TEF!");
                 }
+
+
             }
         }).start();
 
@@ -65,4 +96,24 @@ public class StartTest {
 
 
     }
+
+    private static String ExtriarConteudoTEF(JsonObject obj, String key) {
+      try {
+          String mensagem = obj.get("tef").toString().contains("mensagemResultado") ? obj.get("tef").getAsJsonObject().get("mensagemResultado").getAsString() : "";
+          if(mensagem.equals("AGUARDE A SENHA")) {
+              return "wait_password";
+          }else   if(mensagem.contains("Processando a transacao")){
+                  return "wait_process";
+          }else {
+              return obj.get("tef").getAsJsonObject().get(key).getAsString();
+          }
+      }catch (Exception e){
+          System.out.println(obj);
+          e.printStackTrace();
+      }
+      return "";
+    }
+
+
+
 }

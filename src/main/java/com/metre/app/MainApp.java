@@ -10,7 +10,7 @@ import javafx.stage.Stage;
 
 public class MainApp extends Application {
     public static void main(String[] args) {
-
+            launch();
     }
 
     @Override
@@ -19,10 +19,6 @@ public class MainApp extends Application {
         setUserAgentStylesheet(STYLESHEET_MODENA);
         stage.setScene(new Scene(root));
         stage.setResizable(false);
-        stage.setOnCloseRequest(e -> {
-            Platform.exit();
-            System.exit(0);
-        });
 
         stage.show();
     }

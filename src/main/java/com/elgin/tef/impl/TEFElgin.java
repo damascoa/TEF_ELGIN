@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.jna.Pointer;
+import org.json.JSONObject;
 
 import java.rmi.UnexpectedException;
 
@@ -99,6 +100,11 @@ public class TEFElgin {
         return obj;
     }
 
+    public String IniciarOperacaoTEFS() {
+        String json = E1_Tef01.INSTANCE.IniciarOperacaoTEF("{}").getString(0);
+        return json;
+    }
+
 
 
     /** 6º
@@ -108,8 +114,11 @@ public class TEFElgin {
      * Se for passado, a API usará os dados passados no payload com as seguintes chaves: textoPinpad, versaoAC, nomeEstabelecimento, loja, identificadorPontoCaptura.
      * @return  porta    Uma string JSON com a seguinte estrutura:
      */
-    public void RecuperarOperacaoTEF(String dadosCaptura){
+    public JsonObject RecuperarOperacaoTEF(String dadosCaptura){
         Pointer pointer = E1_Tef01.INSTANCE.RecuperarOperacaoTEF(dadosCaptura);
+        String json = pointer.getString(0);
+        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        return obj;
     }
 
     /** 7º
@@ -129,6 +138,25 @@ public class TEFElgin {
 
     }
 
+    public String RealizarPagamentoTEF(Operacao codigoOperacao, String dadosCaptura, boolean novaTransacao){
+        Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(codigoOperacao.getCodigo(), dadosCaptura, novaTransacao);
+        String json = pointer.getString(0);
+        return json;
+    }
+
+
+    public JsonObject RealizarPagamentoTEF2(Operacao codigoOperacao, String dadosCaptura, boolean novaTransacao){
+        Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(codigoOperacao.getCodigo(), dadosCaptura, novaTransacao);
+        String json = pointer.getString(0);
+        return JsonParser.parseString(json).getAsJsonObject();
+    }
+
+    public  JsonObject  VerificarPendencia(){
+        Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(0, "{}", true);
+        String json = pointer.getString(0);
+        return JsonParser.parseString(json).getAsJsonObject();
+    }
+
 
     /** 8º
      * Inicia uma operação administrativa.
@@ -140,9 +168,9 @@ public class TEFElgin {
      * false - indica uma operação já iniciada, em estado de coleta
      * @return Uma string JSON com a seguinte estrutura:
      */
-    public void RealizarAdmTEF(OperacaoAdministrativa codigoOperacao, String dadosCaptura, boolean novaTransacao){
+    public String RealizarAdmTEF(OperacaoAdministrativa codigoOperacao, String dadosCaptura, boolean novaTransacao){
         Pointer pointer = E1_Tef01.INSTANCE.RealizarAdmTEF(codigoOperacao.getCodigo(), dadosCaptura, novaTransacao);
-
+        return pointer.getString(0);
     }
 
     /** 9º
@@ -151,8 +179,9 @@ public class TEFElgin {
      * @param novaTransacao     Usado para indicar o inicio de uma transação.
      * @return O Retorno será um JSON no padrão da API onde serão retornadas as informações de acordo com o processamento da transação. Durante o processamento os dados utilizados para gerar a imagem do QRCode em tela devem ser retornados na chave "mensagemResultado" do obj "tef". Tal mensagem tem a seguinte estrutura: QRCODE;[dadosEmHexadecimal];[infoComplementaresEmBase64] sendo que o index 1 dessa estrutura pode ser usado para gerar a imagem de apresentação.
      */
-    public void RealizarPixTEF(String dadosCaptura, boolean novaTransacao){
+    public String RealizarPixTEF(String dadosCaptura, boolean novaTransacao){
         Pointer pointer = E1_Tef01.INSTANCE.RealizarPixTEF(dadosCaptura, novaTransacao);
+        return pointer.getString(0);
     }
 
 
@@ -165,8 +194,9 @@ public class TEFElgin {
      *
      * @return Uma string JSON com a seguinte estrutura:
      */
-    public void ConfirmarOperacaoTEF(int id, Acao acao){
+    public String ConfirmarOperacaoTEF(int id, Acao acao){
         Pointer pointer = E1_Tef01.INSTANCE.ConfirmarOperacaoTEF(id, acao.getCodigo());
+        return pointer.getString(0);
     }
 
     /** 11º
@@ -177,8 +207,9 @@ public class TEFElgin {
      *
      * @return Uma string JSON com a seguinte estrutura:
      */
-    public void FinalizarOperacaoTEF(int id){
-        Pointer pointer = E1_Tef01.INSTANCE.FinalizarOperacaoTEF(id);
+    public JsonObject FinalizarOperacaoTEF(int id){
+        String pointer = E1_Tef01.INSTANCE.FinalizarOperacaoTEF(id).getString(0);
+        return JsonParser.parseString(pointer).getAsJsonObject();
     }
 
 

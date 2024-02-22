@@ -1,14 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.metre.controllers.HomeController"
-            prefHeight="400.0" prefWidth="600.0">
 
+<AnchorPane prefHeight="552.0" prefWidth="853.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.metre.controllers.HomeController">
+   <children>
+      <HBox layoutX="197.0" layoutY="169.0" prefHeight="100.0" prefWidth="200.0" spacing="10.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+         <children>
+            <VBox prefHeight="542.0" prefWidth="305.0" spacing="10.0" HBox.hgrow="NEVER">
+               <children>
+                  <VBox>
+                     <children>
+                        <Label text="Valor" />
+                        <TextField fx:id="iptValor" prefHeight="71.0" prefWidth="293.0" />
+                     </children>
+                  </VBox>
+                  <Button mnemonicParsing="false" onAction="#iniciarTEF" prefHeight="51.0" prefWidth="149.0" text="Iniciar TEF" />
+                  <VBox>
+                     <children>
+                        <Label text="Label">
+                           <font>
+                              <Font name="System Bold" size="12.0" />
+                           </font>
+                        </Label>
+                        <ListView fx:id="list" prefHeight="200.0" prefWidth="200.0" />
+                        <HBox alignment="TOP_RIGHT">
+                           <children>
+                              <Button mnemonicParsing="false" onAction="#ok" prefHeight="22.0" prefWidth="149.0" text="OK" />
+                           </children>
+                           <VBox.margin>
+                              <Insets top="5.0" />
+                           </VBox.margin>
+                        </HBox>
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+            <TextArea fx:id="txtLog" prefHeight="542.0" prefWidth="553.0" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+   </children>
 </AnchorPane>

@@ -56,7 +56,7 @@ public class DadosPagamentoTef {
             object.addProperty("sequencia", sequencia);
         }
         if(valor != null) {
-            object.addProperty("valorTotal", valor.toString());
+            object.addProperty("valorTotal", MathUtil.converterBigDecimalParaStringSemPonto(valor));
         }
         if(automacao_coleta_retorno != null){
             object.addProperty("automacao_coleta_retorno", automacao_coleta_retorno);
@@ -64,6 +64,7 @@ public class DadosPagamentoTef {
         if(automacao_coleta_sequencial != null){
             object.addProperty("automacao_coleta_sequencial", automacao_coleta_sequencial);
         }
+        System.out.println(object.toString());
         return object.toString();
     }
 }
