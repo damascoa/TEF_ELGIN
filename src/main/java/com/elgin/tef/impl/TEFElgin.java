@@ -147,7 +147,9 @@ public class TEFElgin {
 
     public JsonObject RealizarPagamentoTEF2(Operacao codigoOperacao, String dadosCaptura, boolean novaTransacao){
         Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(codigoOperacao.getCodigo(), dadosCaptura, novaTransacao);
+        System.out.println("=========> "+dadosCaptura);
         String json = pointer.getString(0);
+        System.out.println("<=========="+json);
         return JsonParser.parseString(json).getAsJsonObject();
     }
 
