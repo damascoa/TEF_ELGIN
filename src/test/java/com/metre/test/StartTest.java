@@ -10,17 +10,20 @@ import com.google.gson.JsonObject;
 import com.sun.prism.shader.AlphaTexture_RadialGradient_AlphaTest_Loader;
 import org.json.JSONObject;
 
+import javax.swing.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.rmi.UnexpectedException;
+import java.util.Random;
 import java.util.Scanner;
 
 public class StartTest {
     public static JsonObject retorno;
+    public static BigDecimal valor = generateRandomBigDecimal();
     public static void main(String[] args) throws UnexpectedException {
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
+
+
                 Integer sequencia = 0;
 
                 TEFElgin tef = new TEFElgin();
@@ -43,7 +46,10 @@ public class StartTest {
 //                if(!temPendencias){
                     int sequenciaColeta = sequencia;
                     JsonObject obj;
-                    obj =  tef.RealizarPagamentoTEF(Operacao.CREDITO, new DadosPagamentoTef(sequenciaColeta+"", new BigDecimal("10.2")), false);
+                    obj =  tef.RealizarPagamentoTEF(Operacao.CREDITO, new DadosPagamentoTef(sequenciaColeta+"", valor), false);
+                    if(obj.getAsJsonObject("tef").getAsJsonObject().get("mensagemResultado").getAsString().contains("Requisicao ignorada: Transacao em andamento")){
+
+                    }
                     Boolean emColeta = true;
                   while(emColeta){
 
@@ -53,7 +59,7 @@ public class StartTest {
 //                          Scanner myObj = new Scanner(System.in);  // Create a Scanner object
 //                          System.out.println("Informe o valor!");
 //                          String valor = "1000";  // Read user input
-                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_informacao\":\"10.04\",\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"1\"}", false);
+                          obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_informacao\":\""+valor+"\",\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"1\"}", false);
                           if(obj.toString().contains("Transacao em andamento")){
                               String j = tef.ConfirmarOperacaoTEF(1, Acao.CANCELAR);
                               System.out.println(j);
@@ -74,27 +80,31 @@ public class StartTest {
                           obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"6\"}", false);
                           obj.addProperty("automacao_coleta_retorno","0");
                       }else if(tipo.equals("approved")){
+                          System.exit(1);
                           obj = tef.RealizarPagamentoTEF2(Operacao.CREDITO, "{\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"7\"}", false);
                           obj.addProperty("automacao_coleta_retorno","999999");
+                          sequencia = obj.get("tef").getAsJsonObject().get("sequencial").getAsInt();
                       }
 
                       String ret = ExtriarConteudoTEF(obj, "automacao_coleta_retorno");
                       emColeta = ret.equalsIgnoreCase("0") || ret.equals("wait_password") ||  ret.equals("wait_process") || ret.equals("approved");
-                      System.out.println(obj);
+                      if(tipo.equals("approved") && obj.getAsJsonObject("tef").get("comprovanteDiferenciadoLoja").getAsString() != null){
+                          System.out.println("COMPROVANTE \n");
+                          System.out.println(obj.getAsJsonObject("tef").get("comprovanteDiferenciadoLoja"));
+                            emColeta = false;
+                      }
                       System.out.println("EM COLETA "+emColeta +" - "+ ExtriarConteudoTEF(obj, "automacao_coleta_retorno"));
                   }
-
                     System.out.println(obj.get("tef").getAsJsonObject().get("mensagemResultado"));
-                  tef.ConfirmarOperacaoTEF(1, Acao.CONFIRMAR);
-                  tef.FinalizarOperacaoTEF(1);
+                   tef.ConfirmarOperacaoTEF(sequencia, Acao.CONFIRMAR);
+                  tef.FinalizarOperacaoTEF(sequencia);
 
 //                }else{
 //                    System.err.println("Existem transações pendentes no TEF!");
 //                }
 
 
-            }
-        }).start();
+
 
 //       BaseReturn coleta =  tef.RealizarColetaPinPad(TipoColeta.CNPJ, true);
 //        if(coleta.getTef().getRetorno().equals("1") ){
@@ -116,6 +126,9 @@ public class StartTest {
           }else {
               return obj.get("tef").getAsJsonObject().get(key).getAsString();
           }
+      }catch (NullPointerException e){
+          JOptionPane.showMessageDialog(null, obj.get("tef").getAsJsonObject().get("mensagemResultado").getAsString());
+
       }catch (Exception e){
           System.out.println(obj);
           e.printStackTrace();
@@ -124,6 +137,13 @@ public class StartTest {
       return "";
     }
 
+    public static BigDecimal generateRandomBigDecimal() {
+        Random random = new Random();
+        // Gera um valor aleatório double entre 0.01 e 99.99
+        double randomValue = 0.01 + (99.99 - 0.01) * random.nextDouble();
+        // Converte o valor double para BigDecimal e arredonda para 2 casas decimais
+        return BigDecimal.valueOf(randomValue).setScale(2, RoundingMode.HALF_UP);
+    }
 
 
 }

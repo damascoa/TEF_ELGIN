@@ -4,20 +4,28 @@ import com.elgin.tef.enums.*;
 import com.elgin.tef.inputs.DadosPagamentoTef;
 import com.elgin.tef.interfaces.E1_Tef01;
 import com.elgin.tef.retornos.BaseReturn;
-import com.elgin.tef.util.VMCheck;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sun.jna.Pointer;
-import org.json.JSONObject;
 
 import java.rmi.UnexpectedException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class TEFElgin {
 
-    boolean tefIniciado = false;
+    public static boolean transacaoPendente = false;
+    public static boolean transacaoEmAndamento = false;
+    public static boolean emColeta = false;
+    public static String mensagemResultado;
 
-    boolean tefEmColeta = false;
+    public static List<String> opcoes = new ArrayList<>();
+
+    private static JsonObject retornoCorrente;
+
+    public static TipoEntrada tipoEntrada;
 
 
     public TEFElgin()  {
@@ -87,16 +95,13 @@ public class TEFElgin {
     /** 5º
      * Estabelece uma conexão com o ElginTEF, permitindo que a API realize transações com o Client. Este método deve ser chamado sempre que a API for carregada ou após a execução do método FinalizarOperacaoTEF. Este método lê o arquivo de configuração para obter os dados do Client e do PDV, conforme documentado nas funções SetClientTCP e ConfigurarDadosPDV.
      * Caso a leitura do arquivo falhe e essas funções ainda não foram chamadas no carregamento atual da biblioteca (execução da aplicação), elas deverão ser chamadas antes de prosseguir com a inicialização. Opcionalmente, pode-se passar um JSON com os dados do PDV que serão usados nas operações subsequentes, sobrescrevendo os valores definidos no método ConfigurarDadosPDV (o arquivo de configuração não é alterado nesse caso).
-     * @param dadosCaptura    Recebe payload com informações da Automação Comercial. Parâmetro opcional.
-     * Se não for passado, a API irá consumir os dados presentes no arquivo de configuração e1_tef_configs.json com as informações dadas às funções SetClientTCP e ConfigurarDadosPDV.
-     * Se for passado, a API usará os dados passados no payload com as seguintes chaves: textoPinpad, versaoAC, nomeEstabelecimento, loja, identificadorPontoCaptura.
      * @return Uma string JSON com a seguinte estrutura: https://elgindevelopercommunity.github.io/group__tf.html#ga1bf9edea41af3c30936caf5ce7f8c988
      */
     public JsonObject IniciarOperacaoTEF() {
         String json = E1_Tef01.INSTANCE.IniciarOperacaoTEF("{}").getString(0);
-        System.out.println(json);
-
+//        System.out.println(json);
         JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        setRetornoCorrente(obj);
         return obj;
     }
 
@@ -118,6 +123,7 @@ public class TEFElgin {
         Pointer pointer = E1_Tef01.INSTANCE.RecuperarOperacaoTEF(dadosCaptura);
         String json = pointer.getString(0);
         JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        setRetornoCorrente(obj);
         return obj;
     }
 
@@ -132,8 +138,11 @@ public class TEFElgin {
      */
     public JsonObject RealizarPagamentoTEF(Operacao codigoOperacao, DadosPagamentoTef dadosCaptura, boolean novaTransacao){
         Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(codigoOperacao.getCodigo(), dadosCaptura.toInput(), novaTransacao);
+        System.out.println(">>>>>>>>>>>>>>"+dadosCaptura.toInput());
        String json = pointer.getString(0);
+        System.out.printf("<<<<<<<<<<<"+json);
         JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        setRetornoCorrente(obj);
         return obj;
 
     }
@@ -150,13 +159,19 @@ public class TEFElgin {
         System.out.println("=========> "+dadosCaptura);
         String json = pointer.getString(0);
         System.out.println("<=========="+json);
-        return JsonParser.parseString(json).getAsJsonObject();
+        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        setRetornoCorrente(obj);
+        return obj;
     }
 
     public  JsonObject  VerificarPendencia(){
         Pointer pointer = E1_Tef01.INSTANCE.RealizarPagamentoTEF(0, "{}", true);
+        System.out.println(">>>>>>>>>>>"+"{}");
         String json = pointer.getString(0);
-        return JsonParser.parseString(json).getAsJsonObject();
+        System.out.println("<<<<<<<<<<<< "+json);
+        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        setRetornoCorrente(obj);
+        return obj;
     }
 
 
@@ -170,9 +185,14 @@ public class TEFElgin {
      * false - indica uma operação já iniciada, em estado de coleta
      * @return Uma string JSON com a seguinte estrutura:
      */
-    public String RealizarAdmTEF(OperacaoAdministrativa codigoOperacao, String dadosCaptura, boolean novaTransacao){
+    public JsonObject RealizarAdmTEF(OperacaoAdministrativa codigoOperacao, String dadosCaptura, boolean novaTransacao){
         Pointer pointer = E1_Tef01.INSTANCE.RealizarAdmTEF(codigoOperacao.getCodigo(), dadosCaptura, novaTransacao);
-        return pointer.getString(0);
+        String json = pointer.getString(0);
+        JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
+        setRetornoCorrente(obj);
+        System.out.println(obj);
+        return  obj;
+
     }
 
     /** 9º
@@ -197,8 +217,9 @@ public class TEFElgin {
      * @return Uma string JSON com a seguinte estrutura:
      */
     public String ConfirmarOperacaoTEF(int id, Acao acao){
-        Pointer pointer = E1_Tef01.INSTANCE.ConfirmarOperacaoTEF(id, acao.getCodigo());
-        return pointer.getString(0);
+        String res = E1_Tef01.INSTANCE.ConfirmarOperacaoTEF(id, acao.getCodigo()).getString(0);
+//        System.out.println(res);
+        return res;
     }
 
     /** 11º
@@ -211,7 +232,10 @@ public class TEFElgin {
      */
     public JsonObject FinalizarOperacaoTEF(int id){
         String pointer = E1_Tef01.INSTANCE.FinalizarOperacaoTEF(id).getString(0);
-        return JsonParser.parseString(pointer).getAsJsonObject();
+//        System.out.println(pointer);
+        JsonObject obj = JsonParser.parseString(pointer).getAsJsonObject();
+        setRetornoCorrente(obj);
+        return obj;
     }
 
 
@@ -292,19 +316,69 @@ public class TEFElgin {
     }
 
 
-    public boolean isTefIniciado() {
-        return tefIniciado;
+
+
+    public Boolean isEmColeta(){
+        if(retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_retorno")){
+            Integer valor = retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_retorno").getAsInt();
+            return valor == 0;
+        }
+        return  false;
     }
 
-    public void setTefIniciado(boolean tefIniciado) {
-        this.tefIniciado = tefIniciado;
+    public static List<String> getOpcoes() {
+        return opcoes;
     }
 
-    public boolean isTefEmColeta() {
-        return tefEmColeta;
+    public static String getMensagemResultado() {
+        return mensagemResultado;
     }
 
-    public void setTefEmColeta(boolean tefEmColeta) {
-        this.tefEmColeta = tefEmColeta;
+    public static JsonObject getRetornoCorrente() {
+        return retornoCorrente;
     }
+
+    public static void setRetornoCorrente(JsonObject retornoCorrente) {
+        TEFElgin.retornoCorrente = retornoCorrente;
+        capturarMensagemResultado();
+        verificarSeTemOpcoesASelecionar();
+        verificarTipoEntrada();
+        temAlgumaColeta();
+
+    }
+
+
+
+    private static void capturarMensagemResultado(){
+        if(retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("mensagemResultado")){
+            mensagemResultado = retornoCorrente.getAsJsonObject("tef").get("mensagemResultado").getAsString();
+        }
+        if(mensagemResultado != null && !mensagemResultado.isEmpty()){
+            System.out.println(mensagemResultado);
+        }
+    }
+
+    private static void verificarSeTemOpcoesASelecionar() {
+        opcoes.clear();
+        if( retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_opcao")){
+            opcoes.addAll(Arrays.asList(retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_opcao").getAsString().split(";")));
+        }
+        if(opcoes.size() > 0){
+            int index = 0;
+            for(String s : opcoes){
+                System.out.println(index+"-"+s);
+                index++;
+            }
+        }
+    }
+
+    private static void verificarTipoEntrada(){
+        if( retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_tipo"))
+            TEFElgin.tipoEntrada = TipoEntrada.ALFABETICO.toEnum(retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_tipo").getAsString());
+    }
+
+    private static void temAlgumaColeta(){
+        emColeta =  retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_tipo");
+    }
+
 }

@@ -140,7 +140,7 @@ public class HomeController implements Initializable {
         // payload.put("admUsuario", ADM_USUARIO);
         // payload.put("admSenha", ADM_SENHA);
 
-        String adm = tef.RealizarAdmTEF(opcao, payload.toString(), true);
+        String adm = "tef.RealizarAdmTEF(opcao, payload.toString(), true);";
         writeLogs("ADM " + adm);
         return adm;
     }
@@ -207,13 +207,13 @@ public class HomeController implements Initializable {
             payload.put("automacao_coleta_informacao", coletaInformacao);
         }
 
-        String resp = tef.RealizarAdmTEF(OperacaoAdministrativa.REIMPRESSAO, payload.toString(), false);
-        String retorno = getRetorno(resp);
-        if (!retorno.isEmpty()) {
-            return resp;
-        }
+//        String resp = tef.RealizarAdmTEF(OperacaoAdministrativa.REIMPRESSAO, payload.toString(), false);
+//        String retorno = getRetorno(resp);
+//        if (!retorno.isEmpty()) {
+//            return resp;
+//        }
 
-        return coletar(operacao, new JSONObject(resp));
+        return "coletar(operacao, new JSONObject(resp))";
     }
 
 
