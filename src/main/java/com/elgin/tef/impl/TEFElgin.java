@@ -4,9 +4,11 @@ import com.elgin.tef.enums.*;
 import com.elgin.tef.inputs.DadosPagamentoTef;
 import com.elgin.tef.interfaces.E1_Tef01;
 import com.elgin.tef.retornos.BaseReturn;
+import com.elgin.tef.retornos.DadosAprovacao;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.metre.listener.TitleListener;
 import com.sun.jna.Pointer;
 
 import java.rmi.UnexpectedException;
@@ -27,10 +29,20 @@ public class TEFElgin {
 
     public static TipoEntrada tipoEntrada;
 
+    public static DadosAprovacao dadosAprovacao;
+
+    public static boolean isConfigurado = false;
+
+
+
 
     public TEFElgin()  {
 
     }
+
+
+
+
 
     /**  1º
      * GetProdutoTef
@@ -186,11 +198,12 @@ public class TEFElgin {
      * @return Uma string JSON com a seguinte estrutura:
      */
     public JsonObject RealizarAdmTEF(OperacaoAdministrativa codigoOperacao, String dadosCaptura, boolean novaTransacao){
+        System.out.println("[INPUT] "+dadosCaptura);
         Pointer pointer = E1_Tef01.INSTANCE.RealizarAdmTEF(codigoOperacao.getCodigo(), dadosCaptura, novaTransacao);
         String json = pointer.getString(0);
         JsonObject obj = JsonParser.parseString(json).getAsJsonObject();
         setRetornoCorrente(obj);
-        System.out.println(obj);
+        System.out.println("[OUTPUT] "+obj);
         return  obj;
 
     }
@@ -331,7 +344,11 @@ public class TEFElgin {
     }
 
     public static String getMensagemResultado() {
-        return mensagemResultado;
+        if(mensagemResultado != null) {
+            return mensagemResultado;
+        }else{
+            return "";
+        }
     }
 
     public static JsonObject getRetornoCorrente() {
@@ -344,41 +361,77 @@ public class TEFElgin {
         verificarSeTemOpcoesASelecionar();
         verificarTipoEntrada();
         temAlgumaColeta();
+        temDadosAprovacao();
 
     }
 
 
 
     private static void capturarMensagemResultado(){
-        if(retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("mensagemResultado")){
+        if(retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") && retornoCorrente.getAsJsonObject("tef").toString().contains("mensagemResultado")){
             mensagemResultado = retornoCorrente.getAsJsonObject("tef").get("mensagemResultado").getAsString();
+
+            listener.change(mensagemResultado);
         }
         if(mensagemResultado != null && !mensagemResultado.isEmpty()){
             System.out.println(mensagemResultado);
+            listener.change(mensagemResultado);
+        }else{
+            listener.change("");
         }
     }
 
     private static void verificarSeTemOpcoesASelecionar() {
         opcoes.clear();
-        if( retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_opcao")){
+        if( retornoCorrente != null  && retornoCorrente.asMap().containsKey("tef") && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_opcao")){
             opcoes.addAll(Arrays.asList(retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_opcao").getAsString().split(";")));
+
         }
+
         if(opcoes.size() > 0){
-            int index = 0;
-            for(String s : opcoes){
-                System.out.println(index+"-"+s);
-                index++;
-            }
+            listener.changeOptions(opcoes);
+//            int index = 0;
+//            for(String s : opcoes){
+//                System.out.println(index+"-"+s);
+//                index++;
+//            }
+        }else{
+            listener.changeOptions(new ArrayList<>());
         }
     }
 
     private static void verificarTipoEntrada(){
-        if( retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_tipo"))
+        if( retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_tipo"))
             TEFElgin.tipoEntrada = TipoEntrada.ALFABETICO.toEnum(retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_tipo").getAsString());
     }
 
     private static void temAlgumaColeta(){
-        emColeta =  retornoCorrente != null && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_tipo");
+        emColeta =  retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") &&  retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_tipo");
+    }
+
+
+    private static void temDadosAprovacao(){
+        if(retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") &&  retornoCorrente.getAsJsonObject("tef").asMap().containsKey("comprovanteDiferenciadoLoja")){
+            String comprovante = retornoCorrente.get("tef").getAsString();
+            System.out.println(comprovante);
+            dadosAprovacao = new Gson().fromJson(comprovante, DadosAprovacao.class);
+        }
+    }
+
+
+
+
+    public void ConfirmarTodasTransacoesPendentes(){
+       JsonObject retorno = this.RealizarAdmTEF(OperacaoAdministrativa.PENDENCIAS, "{\"automacao_coleta_informacao\":\"Administracao Pendente\",\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"0\"}", true);
+       if(retorno.getAsJsonObject("tef").asMap().containsKey("automacao_coleta_sequencial")){
+           this.RealizarAdmTEF(OperacaoAdministrativa.PENDENCIAS, "{\"automacao_coleta_informacao\":\"Confirmar\",\"automacao_coleta_retorno\":\"0\",\"automacao_coleta_sequencial\":\"1\"}", false);
+       }
+    }
+
+
+    private static TitleListener listener;
+    public static void setTitleChangeListener(TitleListener newListener) {
+            listener = newListener;
     }
 
 }
