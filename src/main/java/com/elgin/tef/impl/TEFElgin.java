@@ -33,11 +33,18 @@ public class TEFElgin {
 
     public static boolean isConfigurado = false;
 
+    public static String automacao_coleta_palavra_chave;
+
 
 
 
     public TEFElgin()  {
 
+    }
+
+
+    public TEFElgin(TitleListener listener){
+        TEFElgin.listener = listener;
     }
 
 
@@ -361,6 +368,7 @@ public class TEFElgin {
         verificarSeTemOpcoesASelecionar();
         verificarTipoEntrada();
         temAlgumaColeta();
+        verificarPalavraChave();
         temDadosAprovacao();
 
     }
@@ -370,14 +378,16 @@ public class TEFElgin {
     private static void capturarMensagemResultado(){
         if(retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") && retornoCorrente.getAsJsonObject("tef").toString().contains("mensagemResultado")){
             mensagemResultado = retornoCorrente.getAsJsonObject("tef").get("mensagemResultado").getAsString();
-
-            listener.change(mensagemResultado);
+            if(listener != null){
+            listener.change(mensagemResultado);}
         }
-        if(mensagemResultado != null && !mensagemResultado.isEmpty()){
-            System.out.println(mensagemResultado);
-            listener.change(mensagemResultado);
-        }else{
-            listener.change("");
+        if(listener != null) {
+            if (mensagemResultado != null && !mensagemResultado.isEmpty()) {
+                System.out.println(mensagemResultado);
+                listener.change(mensagemResultado);
+            } else {
+                listener.change("");
+            }
         }
     }
 
@@ -387,22 +397,28 @@ public class TEFElgin {
             opcoes.addAll(Arrays.asList(retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_opcao").getAsString().split(";")));
 
         }
+        if(listener != null) {
+            if (opcoes.size() > 0) {
 
-        if(opcoes.size() > 0){
-            listener.changeOptions(opcoes);
+                listener.changeOptions(opcoes);
 //            int index = 0;
 //            for(String s : opcoes){
 //                System.out.println(index+"-"+s);
 //                index++;
 //            }
-        }else{
-            listener.changeOptions(new ArrayList<>());
+            } else {
+                listener.changeOptions(new ArrayList<>());
+            }
         }
     }
 
     private static void verificarTipoEntrada(){
         if( retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") && retornoCorrente.getAsJsonObject("tef").toString().contains("automacao_coleta_tipo"))
             TEFElgin.tipoEntrada = TipoEntrada.ALFABETICO.toEnum(retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_tipo").getAsString());
+    }
+
+    private static void verificarPalavraChave(){
+        automacao_coleta_palavra_chave = retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") &&  retornoCorrente.getAsJsonObject("tef").asMap().containsKey("automacao_coleta_palavra_chave") ? retornoCorrente.getAsJsonObject("tef").get("automacao_coleta_palavra_chave").getAsString() : "";
     }
 
     private static void temAlgumaColeta(){
@@ -412,9 +428,13 @@ public class TEFElgin {
 
     private static void temDadosAprovacao(){
         if(retornoCorrente != null && retornoCorrente.asMap().containsKey("tef") &&  retornoCorrente.getAsJsonObject("tef").asMap().containsKey("comprovanteDiferenciadoLoja")){
-            String comprovante = retornoCorrente.get("tef").getAsString();
-            System.out.println(comprovante);
-            dadosAprovacao = new Gson().fromJson(comprovante, DadosAprovacao.class);
+          try {
+              String comprovante = retornoCorrente.get("tef").toString();
+              System.out.println(comprovante);
+              dadosAprovacao = new Gson().fromJson(comprovante, DadosAprovacao.class);
+          }catch (Exception e){
+              System.out.println(retornoCorrente);
+          }
         }
     }
 

@@ -57,7 +57,15 @@ public class VendaCartaoController implements Initializable, TitleListener {
            @Override
            public void run() {
                retorno =  Sessao.tef.IniciarOperacaoTEF();
-               Integer sequencia = retorno.getAsJsonObject("tef").get("sequencial").getAsInt()+1;
+               Integer sequencia = null;
+               try {
+                   sequencia = retorno.getAsJsonObject("tef").get("sequencial").getAsInt()+1;
+               }catch (Exception e){
+                   System.out.println(retorno);
+                   e.printStackTrace();
+               }
+
+
                retorno =  Sessao.tef.RealizarPagamentoTEF(Operacao.SELECIONA, new DadosPagamentoTef(sequencia+"", null), true);
                //VALIDAR SE NAO TEM TRANSACAO PENDENTE!
                System.out.println(retorno);
@@ -132,6 +140,11 @@ public class VendaCartaoController implements Initializable, TitleListener {
     @Override
     public void change(String string) {
         Platform.runLater(() -> titulo.setText(string));
+    }
+
+    @Override
+    public void changePalavraChave(String chave) {
+
     }
 
     @Override

@@ -99,6 +99,11 @@ public class AdministrativoController implements Initializable, TitleListener {
     }
 
     @Override
+    public void changePalavraChave(String chave) {
+
+    }
+
+    @Override
     public void changeOptions(List<String> options) {
         Platform.runLater(() ->listOptions.setItems(FXCollections.observableList(options)));
 

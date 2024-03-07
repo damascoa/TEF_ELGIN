@@ -49,6 +49,7 @@ public class HomeController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
        Sessao.tef = new TEFElgin();
+
         try {
             Sessao.tef.SetClientTCP("127.0.0.1", 60906);
             Sessao.tef.ConfigurarDadosPDV("Metre Sistemas", "v1.06.000", "Metre", "01", "T0004");
