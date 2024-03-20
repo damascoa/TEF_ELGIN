@@ -9,12 +9,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.metre.controllers.PagamentoMetreController">
    <children>
       <StackPane layoutX="140.0" layoutY="104.0" prefHeight="150.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <VBox fx:id="cardStart" alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+            <VBox fx:id="cardStart" alignment="CENTER" prefHeight="454.0" prefWidth="600.0">
                <children>
                   <VBox maxWidth="300.0" spacing="20.0">
                      <children>
@@ -29,6 +28,19 @@
                               <Button minHeight="55.0" mnemonicParsing="false" onAction="#pagarDebito" text="Cartão de Débito" />
                            </children>
                         </HBox>
+                     </children>
+                  </VBox>
+                  <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0">
+                     <children>
+                        <HBox alignment="TOP_CENTER" spacing="5.0">
+                           <children>
+                              <TextField fx:id="iptData" promptText="DATA" />
+                              <TextField fx:id="iptNsu" promptText="NSU" />
+                              <TextField fx:id="iptValorC" promptText="Valor" />
+                           </children>
+                        </HBox>
+                        <Button mnemonicParsing="false" onAction="#cancelar" prefHeight="55.0" prefWidth="110.0" text="Cancelar" />
+                        <Button mnemonicParsing="false" onAction="#reimprimir" prefHeight="55.0" prefWidth="110.0" text="Reimprimir" />
                      </children>
                   </VBox>
                </children>
